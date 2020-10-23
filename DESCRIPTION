@@ -1,0 +1,15 @@
+Package: tidyneuro
+Title: Tidy workflows for Neuroimaging
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Domingo",
+           family = "López",
+           role = c("aut", "cre"),
+           email = "dominlopez@uma.es",
+           comment = c(ORCID = "YOUR-ORCID-ID"))
+Description: Set up and execute neuroimaging pipelines and workflows with replicability, robustness and tidyness in mind.
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
