@@ -6,7 +6,7 @@ Authors@R:
            family = "López",
            role = c("aut", "cre"),
            email = "dominlopez@uma.es",
-           comment = c(ORCID = "YOUR-ORCID-ID"))
+           comment = c(ORCID = "0000-0002-0172-1585"))
 Description: Set up and execute neuroimaging pipelines and workflows with replicability, robustness and tidyness in mind.
 License: GPL-3
 Encoding: UTF-8
@@ -20,4 +20,8 @@ Suggests:
     spelling
 Language: en-GB
 Imports: 
-    magrittr
+    magrittr,
+    registry,
+    igraph,
+    crayon,
+    hasseDiagram
