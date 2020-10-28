@@ -17,11 +17,13 @@ URL: https://github.com/neuroimaginador/tidyneuro
 BugReports: https://github.com/neuroimaginador/tidyneuro/issues
 Suggests: 
     testthat,
-    spelling
+    spelling,
+    crayon
 Language: en-GB
 Imports: 
     magrittr,
     registry,
     igraph,
-    crayon,
-    hasseDiagram
+    Rgraphviz,
+    methods,
+    stringr

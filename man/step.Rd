@@ -7,7 +7,7 @@
 step(
   flow,
   f,
-  inputs = ifelse(inherits(proc, "function"), list(names(formals(proc))), list()),
+  inputs = ifelse(inherits(f, "function"), list(names(formals(f))), list()),
   output,
   ...
 )
@@ -29,7 +29,4 @@ The flow with the function added
 }
 \description{
 This function adds another function to a given flow.
-}
-\seealso{
-\code{\link[igraph]{add_vertices}},\code{\link[igraph]{add_edges}}
 }

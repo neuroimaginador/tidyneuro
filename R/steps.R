@@ -27,23 +27,27 @@
 #'
 #' @return The flow with the function added
 #'
-#' @seealso
-#'  \code{\link[igraph]{add_vertices}},\code{\link[igraph]{add_edges}}
-#' @importFrom igraph add_vertices add_edges V
-#' @import stringr
-#' @importFrom pryr partial
+#' @export
 #'
 step <- function(flow,
                          f,
-                         inputs = ifelse(inherits(proc, "function"), list(names(formals(proc))), list()),
+                         inputs = ifelse(inherits(f, "function"), list(names(formals(f))), list()),
                          output,
                          ...) {
 
+  # browser()
 
   # Basic checks
   stopifnot(inherits(flow, "workflow"))
   stopifnot(inherits(f, "function"))
   output <- as.character(output)
+  # Check that the output is not currently included.
+  if (any(output %in% flow$outputs)) {
+
+    stop("Output currently in the flow.", call. = FALSE)
+
+  }
+
 
   if (length(inputs) > 0) inputs <- unlist(inputs)
 
@@ -51,21 +55,28 @@ step <- function(flow,
 
   flow$log(level = "DEBUG",
            message = paste0("Adding process with inputs: ",
-                            str_flatten(unlist(inputs), collapse = ", "),
+                            stringr::str_flatten(unlist(inputs), collapse = ", "),
                             " and output(s): ",
-                            str_flatten(unlist(output), collapse = ", ")))
+                            stringr::str_flatten(unlist(output), collapse = ", ")))
 
   # Add a node to the graph, with edges from its inputs to it.
-  flow$graph <- flow$graph %>% add_vertices(nv = 1, name = output, type = type)
-  new_vertex_idx <- length(V(flow$graph))
+  # Generate an ID for the name of the node in the graph
+  id <- paste0(sample(c(letters, 0:9), size = 8L, replace = TRUE), collapse = "")
 
+  if (length(output) == 1) id <- output
+
+  flow$graph <- flow$graph %>%
+    igraph::add_vertices(nv = 1, name = id, type = type)
+  new_vertex_idx <- length(igraph::V(flow$graph))
+
+  # browser()
   if (length(inputs) > 0) {
 
     input_ids <- match(inputs, flow$outputs)
-    flow$inmediate_inputs[[output]] <- flow$outputs[input_ids]
+    flow$inmediate_inputs[[id]] <- flow$outputs[input_ids]
 
     flow$graph <- flow$graph %>%
-      add_edges(edges = as.vector(rbind(input_ids, new_vertex_idx)))
+      igraph::add_edges(edges = as.vector(rbind(input_ids, new_vertex_idx)))
 
   }
 
@@ -74,16 +85,9 @@ step <- function(flow,
 
   if (length(additional_params) > 0) {
 
-    f <- f %>% partial(...)
+    f <- f %>% pryr::partial(..., .lazy = FALSE)
 
   }
-
-  flow$processes[[output]] <- f
-  flow$outputs <- c(flow$outputs, output)
-  flow$node_types <- c(flow$node_types, "Output")
-
-  # Add package dependencies
-  # flow$pkgs[[output]] <- .get_dependencies(f)
 
   # Add its pipeline (updating all previous pipelines)
   inputs <- which(flow$node_types == "Input")
@@ -91,23 +95,93 @@ step <- function(flow,
   for (target_idx in setdiff(seq(new_vertex_idx), inputs)) {
 
     # Path from the current node to inputs
-    paths <- flow$graph %>% all_simple_paths(from = target_idx, to = inputs, mode = "in")
+    paths <- flow$graph %>%
+      igraph::all_simple_paths(from = target_idx,
+                               to = inputs,
+                               mode = "in")
     paths <- lapply(paths, unclass)
     paths <- lapply(paths, as.vector)
     nodes_for_target <- unique(unlist(paths))
 
     # Topological order of the graph
-    pipeline <- topo_sort(flow$graph)
+    pipeline <- igraph::topo_sort(flow$graph)
 
     # Restricted to nodes connected to the current node
     pipeline <- pipeline[pipeline %in% nodes_for_target]
 
     # Update the list of current required inputs and the pipeline for the current node
-    flow$required_inputs[[V(flow$graph)$name[target_idx]]] <- intersect(pipeline, inputs)
-    flow$pipeline[[V(flow$graph)$name[target_idx]]] <- setdiff(pipeline, inputs)
+    flow$required_inputs[[igraph::V(flow$graph)$name[target_idx]]] <- intersect(pipeline, inputs)
+    flow$pipeline[[igraph::V(flow$graph)$name[target_idx]]] <- setdiff(pipeline, inputs)
 
   }
 
+  # Add the function to the list, depending if the number of
+  # outputs is 1 or more than 1.
+  if (length(output) == 1) {
+
+    # V(flow$graph)$name[new_vertex_idx] <- output
+    flow$processes[[output]] <- f
+    flow$outputs <- c(flow$outputs, output)
+    flow$node_types <- c(flow$node_types, "Output")
+    names(flow$node_types)[length(flow$node_types)] <- output
+    # Add package dependencies
+    flow$pkgs[[output]] <- .get_dependencies(f)
+
+  } else {
+
+    flow$processes[[id]] <- f
+    flow$outputs <- c(flow$outputs, id)
+    flow$node_types <- c(flow$node_types, "Hub")
+    names(flow$node_types)[length(flow$node_types)] <- id
+    # Add package dependencies
+    flow$pkgs[[id]] <- .get_dependencies(f)
+
+
+    for (out_id in seq_along(output)) {
+
+      out <- output[out_id]
+
+      flow$outputs <- c(flow$outputs, out)
+      flow$node_types <- c(flow$node_types, "Output")
+      names(flow$node_types)[length(flow$node_types)] <- out
+
+      flow$graph <- flow$graph %>%
+        igraph::add_vertices(nv = 1, name = out, type = type)
+
+      flow$inmediate_inputs[[out]] <- id
+
+      flow$required_inputs[[out]] <- flow$required_inputs[[id]]
+      flow$pipeline[[out]] <- c(flow$pipeline[[id]],
+                                length(igraph::V(flow$graph)))
+
+      flow$processes[[out]] <- pryr::partial(.extract_field, nm = out, i = out_id, .lazy = FALSE)
+
+    }
+
+    n <- length(igraph::V(flow$graph))
+
+    flow$graph <- flow$graph %>%
+      igraph::add_edges(edges = as.vector(rbind(new_vertex_idx,
+                                        seq(new_vertex_idx + 1, n))))
+
+
+  }
+
+
   return(invisible(flow))
+
+}
+
+.extract_field <- function(L, nm, i) {
+
+  if (nm %in% names(L)) {
+
+    return(L[[nm]])
+
+  } else {
+
+    return(L[[i]])
+
+  }
 
 }

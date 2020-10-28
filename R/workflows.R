@@ -9,7 +9,7 @@
 #  - Is represented by a graph
 #  - Must save multiple temporary results to disk to save memory, if requested to do so.
 #  - Must allow for a step to provide multiple outputs.
-#  - Must check the input object type of a step in its creation. thus, must handle properly object types and their related functions.
+#  - Must check the input object type of a step in its creation. Thus, must handle properly object types and their related functions.
 #  - Must compute only the necessary steps to provide the requested outputs.
 #  - May be exported to a package. Note its package dependencies.
 #  - Can be saved to/loaded from disk in compressed format.
@@ -22,7 +22,8 @@
 #  - Initializes the workflow name/description
 #  - May initialize inputs.
 
-#' @importFrom igraph make_empty_graph add_vertices
+#' @export
+#'
 workflow <- function(name = "",
                      work_dir = tempdir(),
                      inputs = list()) {
@@ -36,7 +37,7 @@ workflow <- function(name = "",
   flow$inputs <- list()
   flow$outputs <- list()
   flow$element_types <- list()
-  flow$node_types <- list()
+  flow$node_types <- c()
 
   # List of flow processes (both models and functions)
   flow$processes <- list()
@@ -48,7 +49,7 @@ workflow <- function(name = "",
   flow$inmediate_inputs <- list()
 
   # Create graph of dependencies
-  flow$graph <- make_empty_graph(directed = TRUE)
+  flow$graph <- igraph::make_empty_graph(directed = TRUE)
 
   # Add inputs to the graph
   if (length(inputs) > 0) {
@@ -68,10 +69,16 @@ workflow <- function(name = "",
 
     flow$inputs <- input_names
     flow$element_types <- input_types
-    flow$node_types <- rep("Input", length(input_names))
-    flow$graph <- flow$graph %>% add_vertices(nv = length(inputs),
-                                              name = unlist(inputs),
-                                              type = rep("Input", length(inputs)))
+    flow$node_types <- rep("Input",
+                           length(input_names))
+    names(flow$node_types) <- input_names
+    flow$graph <- flow$graph %>%
+      igraph::add_vertices(nv = length(inputs),
+                           name = input_names,
+                           type = input_types)
+
+    print(input_names)
+    print(input_types)
 
   }
 
@@ -159,9 +166,7 @@ workflow <- function(name = "",
 #'
 #' @return Returns (invisibly) the flow with added inputs.
 #'
-#' @seealso
-#'  \code{\link[igraph]{add_vertices}}
-#' @importFrom igraph add_vertices
+#' @export
 #'
 inputs <- function(flow, ...) {
 
@@ -188,18 +193,21 @@ inputs <- function(flow, ...) {
 
     flow$log(level = "DEBUG",
              message = paste0("Adding inputs ",
-                              str_flatten(unlist(input_names),
-                                          collapse = ", ")))
+                              stringr::str_flatten(unlist(input_names),
+                                                   collapse = ", ")))
 
     flow$inputs <- c(flow$inputs, input_names)
     flow$element_types <- c(flow$element_types, input_types)
-    flow$graph <- flow$graph %>% add_vertices(nv = length(inputs),
-                                              name = unlist(inputs),
-                                              type = rep("Input", length(inputs)))
+    flow$graph <- flow$graph %>%
+      igraph::add_vertices(nv = length(inputs),
+                           name = input_names,
+                           type = input_types)
 
     # List of all possible outputs of the flow
     flow$outputs <- c(flow$outputs, unlist(input_names))
-    flow$node_types <- c(flow$node_types, rep("Input", length(input_names)))
+    new_node_types <- rep("Input", length(input_names))
+    names(new_node_types) <- input_names
+    flow$node_types <- c(flow$node_types, new_node_types)
 
   }
 

@@ -35,6 +35,3 @@ A list with one (named) field for each \code{desired_output}.
 \description{
 This function allows to run a pipeline (flow) given some of its inputs.
 }
-\seealso{
-\code{\link[neurobase]{readnii}}
-}

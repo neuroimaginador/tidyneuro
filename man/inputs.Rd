@@ -17,6 +17,3 @@ Returns (invisibly) the flow with added inputs.
 \description{
 This function adds a node of type input to a flow.
 }
-\seealso{
-\code{\link[igraph]{add_vertices}}
-}

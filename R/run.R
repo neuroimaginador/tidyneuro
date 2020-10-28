@@ -12,30 +12,24 @@
 #'
 #' @return A list with one (named) field for each \code{desired_output}.
 #'
-#' @seealso
-#'  \code{\link[neurobase]{readnii}}
-#' @importFrom neurobase readnii fast_readnii
-#' @import igraph
-#' @importFrom purrr map_dbl
-#' @importFrom pryr object_size
-#' @importFrom prettyunits pretty_bytes
-#' @importFrom methods formalArgs
+#' @export
 #'
 run <- function(flow,
-                          inputs = list(),
-                          desired_outputs = NULL,
-                          initialize_outputs = TRUE,
-                          cleanup = TRUE,
-                          verbose = FALSE,
-                          ...) {
+                inputs = list(),
+                desired_outputs = NULL,
+                initialize_outputs = TRUE,
+                cleanup = TRUE,
+                verbose = FALSE,
+                ...) {
 
 
   # An auxiliary function to get a list size in memory.
   mem_list <- function(L) {
 
-    L %>% map_dbl(object_size) %>%
+    L %>%
+      purrr::map_dbl(pryr::object_size) %>%
       sum() %>%
-      pretty_bytes()
+      prettyunits::pretty_bytes()
 
   }
 
@@ -57,7 +51,7 @@ run <- function(flow,
 
     flow$log(level = "WARNING",
              message = paste0("Some of the outputs cannot be computed: ",
-                              str_flatten(not_computable, collapse = ", ")))
+                              stringr::str_flatten(not_computable, collapse = ", ")))
 
   }
 
@@ -68,8 +62,8 @@ run <- function(flow,
   if (length(desired_outputs) > 0) {
 
     # Variables needed to perform cleanup on computed (and unneeded) outputs
-    variables_cleanup <- lapply(adjacent_vertices(graph = flow$graph,
-                                                  v = V(flow$graph)),
+    variables_cleanup <- lapply(igraph::adjacent_vertices(graph = flow$graph,
+                                                  v = igraph::V(flow$graph)),
                                 function(s) attr(s, "name"))
 
     is_computed <- rep(FALSE, length(flow$outputs))
@@ -89,9 +83,9 @@ run <- function(flow,
 
                  "rds" = readRDS(inputs[[name]]),
 
-                 "nii" = fast_readnii(inputs[[name]]),
+                 "nii" = neurobase::fast_readnii(inputs[[name]]),
 
-                 "gz" = fast_readnii(inputs[[name]])
+                 "gz" = neurobase::fast_readnii(inputs[[name]])
 
           )
 
@@ -117,10 +111,12 @@ run <- function(flow,
       # Define which parts of the flow must be processed
       pipeline <- flow$pipeline[[output]]
 
-      to_compute <- flow %>% .which_to_compute(output = output,
-                                               given_inputs = input_names)
+      to_compute <- flow %>%
+        .which_to_compute(output = output,
+                          given_inputs = input_names)
 
-      pipeline <- intersect(flow$outputs[pipeline], c(to_compute, output))
+      pipeline <- intersect(flow$outputs[pipeline],
+                            c(to_compute, output))
       pipelines_names[[output]] <- pipeline
 
       pipeline <- match(pipeline, flow$outputs)
@@ -181,7 +177,7 @@ run <- function(flow,
 
           if (inherits(process, "function")) {
 
-            param_names <- formalArgs(process)
+            param_names <- methods::formalArgs(process)
 
             # Allow for functions with ... in its arguments
             if (!("..." %in% param_names))
@@ -231,12 +227,12 @@ run <- function(flow,
 
               flow$log(level = "DEBUG",
                        message = paste0("Removed intermediate outputs: ",
-                                        str_flatten(which_to_remove,
+                                        stringr::str_flatten(which_to_remove,
                                                     collapse = ", ")))
 
               if (verbose) {
 
-                str_remove <- str_flatten(which_to_remove, collapse = ", ") #nocov
+                str_remove <- stringr::str_flatten(which_to_remove, collapse = ", ") #nocov
                 cat("Removing", str_remove, "...\n") # nocov
 
               }
