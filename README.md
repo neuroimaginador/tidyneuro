@@ -4,7 +4,6 @@
 <!-- badges: start -->
 [![Codecov test coverage](https://codecov.io/gh/neuroimaginador/tidyneuro/branch/master/graph/badge.svg)](https://codecov.io/gh/neuroimaginador/tidyneuro?branch=master)
 [![R build status](https://github.com/neuroimaginador/tidyneuro/workflows/R-CMD-check/badge.svg)](https://github.com/neuroimaginador/tidyneuro/actions)
-![R-CMD-check-bioc](https://github.com/neuroimaginador/tidyneuro/workflows/R-CMD-check-bioc/badge.svg)
 <!-- badges: end -->
 
 The goal of tidyneuro is to ...
