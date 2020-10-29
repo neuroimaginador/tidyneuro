@@ -14,9 +14,10 @@ plot <- function(flow) {
   node_types <- unlist(flow$node_types)
   labels[node_types == "Hub"] <- "*"
 
-  av_colors <- grDevices::palette.colors(n = length(unique(node_types)),
-                              palette = "ggplot2")
-  colors <- av_colors[as.numeric(as.factor(unlist(flow$node_types)))]
+  color_ramp <- scales::colour_ramp(c("red", "black", "blue"))
+  av_colors <- color_ramp(seq(0, 1, length = length(unique(node_types))))
+  names(av_colors) <- c("Input", setdiff(unique(flow$node_types), c("Input", "Output")), "Output")
+  colors <- av_colors[flow$node_types]
 
   attrs <- list(graph = list(bgcolor = "#FFFFFF"),
                 edge = list(arrowsize = "0.5",

@@ -14,7 +14,6 @@ URL: https://github.com/neuroimaginador/tidyneuro
 BugReports: https://github.com/neuroimaginador/tidyneuro/issues
 Imports: 
     graphics,
-    grDevices,
     igraph,
     magrittr,
     methods,
@@ -23,7 +22,8 @@ Imports:
     pryr,
     purrr,
     Rgraphviz,
-    stringr
+    stringr,
+    scales
 Suggests: 
     crayon,
     spelling,
