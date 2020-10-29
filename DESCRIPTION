@@ -27,7 +27,8 @@ Imports:
 Suggests: 
     crayon,
     spelling,
-    testthat
+    testthat,
+    covr
 Encoding: UTF-8
 Language: en-GB
 LazyData: true
