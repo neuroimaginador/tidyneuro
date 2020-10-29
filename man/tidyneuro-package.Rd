@@ -6,7 +6,8 @@
 \alias{tidyneuro-package}
 \title{tidyneuro: Tidy workflows for Neuroimaging}
 \description{
-Set up and execute neuroimaging pipelines and workflows with replicability, robustness and tidyness in mind.
+Set up and execute neuroimaging pipelines and
+    workflows with replicability, robustness and tidyness in mind.
 }
 \seealso{
 Useful links:

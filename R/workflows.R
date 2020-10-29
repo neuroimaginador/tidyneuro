@@ -22,6 +22,13 @@
 #  - Initializes the workflow name/description
 #  - May initialize inputs.
 
+#' Create a Workflow
+#'
+#' @param name  (string) The name given to the workflow
+#'
+#' @param work_dir Working directory
+#' @param inputs List of inputs
+#'
 #' @export
 #'
 workflow <- function(name = "",

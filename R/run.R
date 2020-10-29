@@ -280,7 +280,7 @@ run <- function(flow,
 #'
 #' @description This function deletes previously computed outputs inside the flow.
 #'
-#' @param flow    (a NIflow object) The flow for which outputs are to be removed.
+#' @param flow    (a workflow object) The flow for which outputs are to be removed.
 #'
 #' @return (Invisibly) the same flow, without pre-computed outputs.
 #'
@@ -298,7 +298,7 @@ run <- function(flow,
 #'
 #' @description This internal function returns the list of steps to compute the given output.
 #'
-#' @param flow            (a NIflow object) The flow.
+#' @param flow            (a workflow object) The flow.
 #' @param output          (character) The name of the output to compute.
 #' @param given_inputs    (list) Additional inputs provided, Default: NULL
 #'

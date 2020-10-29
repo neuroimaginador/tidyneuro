@@ -4,10 +4,12 @@
 \alias{print.workflow}
 \title{Print Flow Information}
 \usage{
-\method{print}{workflow}(flow)
+\method{print}{workflow}(x, ...)
 }
 \arguments{
-\item{flow}{(a \code{workflow} object) Flow to print}
+\item{x}{(a \code{workflow} object) Flow to print}
+
+\item{...}{Not used}
 }
 \value{
 Prints the name, inputs, outputs, package dependencies and memory used.

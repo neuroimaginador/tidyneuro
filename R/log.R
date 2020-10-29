@@ -1,3 +1,8 @@
+#' Log of a Workflow
+#'
+#' @param flow  The \code{workflow} to use
+#' @param level Any of "DEBUG", "WARNING", "INFO" or "ERROR", indicating the level of verbosity of the log.
+#'
 #' @export
 log <- function(flow,
                 level = c("DEBUG", "WARNING", "INFO", "ERROR")) {

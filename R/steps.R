@@ -11,6 +11,7 @@
 #  - Must specify (...) arguments to be passed to other methods.
 #  - Should rename the formals of the inner function to match those of the input.
 #  - If more than one output is provided, the step should have a unique id.
+#  - update(flow, output_name, new_function)
 
 
 

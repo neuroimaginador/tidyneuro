@@ -4,10 +4,12 @@
 \alias{summary.workflow}
 \title{Summary of Flow}
 \usage{
-\method{summary}{workflow}(flow)
+\method{summary}{workflow}(object, ...)
 }
 \arguments{
-\item{flow}{(a \code{NIflow} object) Flow to print summary of.}
+\item{object}{(a \code{NIflow} object) Flow to print summary of.}
+
+\item{...}{Not used.}
 }
 \value{
 Prints inputs, outputs and dependencies between them.

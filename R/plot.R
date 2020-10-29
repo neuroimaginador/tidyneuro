@@ -1,3 +1,9 @@
+#' @title Plot a Flow
+#'
+#' @description This function plots the computation graph of the flow.
+#'
+#' @param flow The workflow to plot.
+#'
 #' @export
 plot <- function(flow) {
 
@@ -8,7 +14,7 @@ plot <- function(flow) {
   node_types <- unlist(flow$node_types)
   labels[node_types == "Hub"] <- "*"
 
-  av_colors <- palette.colors(n = length(unique(node_types)),
+  av_colors <- grDevices::palette.colors(n = length(unique(node_types)),
                               palette = "ggplot2")
   colors <- av_colors[as.numeric(as.factor(unlist(flow$node_types)))]
 
@@ -30,7 +36,7 @@ plot <- function(flow) {
 
   colnames(M) <- rownames(M) <- flow$outputs
 
-  plot.new()
+  graphics::plot.new()
   Rgraphviz::plot(methods::as(M, "graphNEL"),
                   attrs = attrs,
                   nodeAttrs = nAttrs)

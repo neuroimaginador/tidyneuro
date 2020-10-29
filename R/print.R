@@ -1,12 +1,13 @@
 #' Print Flow Information
 #'
-#' @param flow   (a \code{workflow} object) Flow to print
+#' @param x   (a \code{workflow} object) Flow to print
+#' @param ... Not used
 #'
 #' @return Prints the name, inputs, outputs, package dependencies and memory used.
 #'
 #' @export
 #'
-print.workflow <- function(flow) {
+print.workflow <- function(x, ...) {
 
   has_crayon <- requireNamespace("crayon", quietly = TRUE)
 
@@ -25,10 +26,10 @@ print.workflow <- function(flow) {
   }
 
   # Name, inputs and outputs
-  flow_name <- flow$name %>% bold()
-  flow_inputs <- stringr::str_flatten(flow$inputs %>% green(),
+  flow_name <- x$name %>% bold()
+  flow_inputs <- stringr::str_flatten(x$inputs %>% green(),
                                       collapse = ", ")
-  flow_outputs <- stringr::str_flatten((flow$outputs[flow$node_types == "Output"]) %>% blue(),
+  flow_outputs <- stringr::str_flatten((x$outputs[x$node_types == "Output"]) %>% blue(),
                               collapse = ", ")
 
   cat(underline("workflow with:\n"),
@@ -37,7 +38,7 @@ print.workflow <- function(flow) {
       " outputs:", flow_outputs, "\n")
 
   # # Dependencies
-  flow_deps <- flow$pkgs %>% unlist() %>% unique()
+  flow_deps <- x$pkgs %>% unlist() %>% unique()
 
   if (length(flow_deps) > 0) {
 
@@ -47,7 +48,10 @@ print.workflow <- function(flow) {
   }
 
   # Currently used memory
-  cat("Currently using", (flow %>% pryr::object_size() %>% as.numeric()) %>% prettyunits::pretty_bytes(),
+  cat("Currently using", x %>%
+        pryr::object_size() %>%
+        as.numeric() %>%
+        prettyunits::pretty_bytes(),
       "of memory.\n")
 
   invisible(TRUE)
@@ -56,12 +60,13 @@ print.workflow <- function(flow) {
 
 #' Summary of Flow
 #'
-#' @param flow   (a \code{NIflow} object) Flow to print summary of.
+#' @param object   (a \code{NIflow} object) Flow to print summary of.
+#' @param ... Not used.
 #'
 #' @return Prints inputs, outputs and dependencies between them.
 #' @export
 #'
-summary.workflow <- function(flow) {
+summary.workflow <- function(object, ...) {
 
   # If available, pretty-print summary
   has_crayon <- requireNamespace("crayon", quietly = TRUE)
@@ -76,21 +81,16 @@ summary.workflow <- function(flow) {
 
   }
 
-  print(flow)
+  print(object)
 
   # Dependencies between inputs and outputs
-  outputs <- flow$outputs[flow$node_types == "Output"]
-  # edges <- igraph::as_edgelist(flow$graph)
-  # inputs_needed <- edges[, 1]
-  # outputs <- edges[, 2]
-  #
-  # only_outputs <- setdiff(flow$outputs, flow$inputs)
+  outputs <- object$outputs[object$node_types == "Output"]
 
   relationships <- c()
 
   for (out in outputs) {
 
-    inputs_needed <- .closest_inputs(flow, out)
+    inputs_needed <- .closest_inputs(object, out)
 
     relationships <- c(relationships,
                        paste0("  ", out, " needs ",
@@ -134,3 +134,6 @@ summary.workflow <- function(flow) {
   return(inputs)
 
 }
+
+.S3methods("print", "workflow")
+.S3methods("summary", "workflow")

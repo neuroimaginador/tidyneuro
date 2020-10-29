@@ -27,12 +27,19 @@
 #  - element_file()
 #  - element_object()
 
+#' Volume object
 #' @export
 element_volume <- function() "volume"
+
+#' Matrix object
 #' @export
 element_matrix <- function() "matrix"
+
+#' File object
 #' @export
 element_file <- function() "file"
+
+#' Generic object
 #' @export
 element_object <- function() "object"
 
