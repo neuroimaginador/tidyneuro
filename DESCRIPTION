@@ -18,10 +18,10 @@ Imports:
     igraph,
     magrittr,
     methods,
+    neurobase,
     prettyunits,
     pryr,
     purrr,
-    registry,
     Rgraphviz,
     stringr
 Suggests: 
