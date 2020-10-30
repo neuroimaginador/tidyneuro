@@ -1,0 +1,193 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# tidyneuro
+
+<!-- badges: start -->
+[![R build status](https://github.com/neuroimaginador/tidyneuro/workflows/R-CMD-check/badge.svg)](https://github.com/neuroimaginador/tidyneuro/actions)
+[![Codecov test coverage](https://codecov.io/gh/neuroimaginador/tidyneuro/branch/master/graph/badge.svg)](https://codecov.io/gh/neuroimaginador/tidyneuro?branch=master)
+<!-- badges: end -->
+
+There are a lot of packages in the R ecosystem focused on several aspects of Neuroimage processing, many of them listed in the [CRAN Task View: Medical Imaging](https://CRAN.R-project.org/view=MedicalImaging) section: `oro.nifti`, `oro.dicom`, `RNifti`, `fmri`, `divest` (among others) for reading/writing of images; `ANTsR`, `fslr` for more advanced processing methods; `RNiftyReg` specialized in registration, `mritc` focused in image segmentation. Many more, for DTI, fMRI, molecular imaging, and visualization are available in [CRAN](https://CRAN.R-project.org).
+
+However, to get a complete Neuroimaging pipeline working, it is common to rely on several different packages, and, in general, no single package can offer all the functionalities desired. Tracking the requirements and dependencies of a pipeline is time-consuming, since the user has to manually find, for each function used, the packages it depends on. 
+
+In addition, the most typical form of building a pipeline in R is via scripting. Once the needed functions are defined or imported from a  third-party package, one or more scripts are written in order to get all processes done.
+
+But scripts are error-prone, difficult to trace and debug if the script is large, and require some level of customization when one tries to run the script in a different environment (computer, laboratory...). These cons make us think of defining self-contained workflows, easily shareable, which can perform the same operations as a script but with greater legibility and traceability.
+
+The goal of this package is to provide certain features to manage the situations before:
+
+- **Simple definition of Neuroimaging flows**, which can incorporate any `R` function (including those from other packages, such as `ANTsR` or `fslr`) as a part of it. At definition time, the package warns about inconsistencies on the flow from inputs to outputs (undefined functions or variables).
+- Creation of a **common interface for the execution** of Neuroimaging workflows, reducing the need of constantly looking up in the documentation of several packages. Instead of using a different syntax for each function, just _execute_ the flow, specifying the required outputs, and all associated functions are run in the right order to get the results.
+- Ability to **automatically track dependencies**. Every time a new function or process is inserted into a flow, the _flow_ object tries to guess its dependencies, by looking up in the different loaded namespaces, and storing (internally) this information to be used in the export stage.
+- **Workflows can be shared** across multiple systems. A _flow_ object can be exported and saved as a regular .zip file, and then reloaded in a different computer. When importing a flow, the package detects (from in internals) if there are missing dependencies (packages not installed on the system) and prompts the user to install them.
+- **Extensibility**. A node in the workflow is a single function in `R`, that is, something that can be computed in runtime. This means that a process in the pipeline can be, for example, a function to generate a plot, or to compute image statistics, or a function that wraps a random forest which has been previously trained to infer a labelling on the input image. The `wf4ni` package provides the tools to extend this functionality to other _computations_: machine learning or deep learning models, for instance.
+- **Simple memory management**. The memory used by intermediate outputs when running a flow is automatically released when those outputs are no longer needed for further results, thus keeping the memory footprint as small as possible.
+- Work natively with **NIfTI files**.
+## Installation
+
+You can install the released version of tidyneuro from [CRAN](https://CRAN.R-project.org) with:
+
+``` r
+install.packages("tidyneuro")
+```
+
+And the development version from [GitHub](https://github.com/) with:
+
+``` r
+# install.packages("remotes")
+remotes::install_github("neuroimaginador/tidyneuro")
+```
+
+## The `tidyneuro` approach
+
+```{r echo = FALSE}
+library(tidyneuro)
+##%######################################################%##
+#                                                          #
+####                Auxiliary functions                 ####
+#                                                          #
+##%######################################################%##
+
+# - register to a template (MNI152 in case of structural imaging)
+# Returns the transformation, as declared in the ANTsRCore package
+register_to_template <- function(image, template) {
+  #...
+}
+
+# Returns the image reoriented in the template space
+get_img_in_template <- function(tx) {
+  #...
+}
+
+# Returns the affine transformation
+get_tx_to_template <- function(tx) {
+  #...
+}
+
+# Returns the scale parameter as the determinant of the affine transformation
+get_scale_parameter <- function(M) {
+  #...
+}
+
+template <- file.path(".", "resources",
+                      "volumetry", "MNI152_T1_1mm.nii.gz")
+
+# - bias field correction, just a simple wrapper around
+# n4BiasFieldCorrection
+bfc <- function(img) {
+  #...
+}
+
+# - brain extraction
+# Uses MALF technique with a "brain extraction" dataset
+# Returns the brain mask
+make_brain_extraction <- function(image) {
+  #...
+}
+
+# - segmentation (GM, WM an CSF)
+# Uses FSL's FAST tool to find a segmentation into GM, WM and CSF
+# Returns the segmentation as a labelled image with labels 0 (background),
+# 1 (CSF), 2 (GM) and 3 (WM)
+get_segmentation <- function(img, mask = NULL) {
+  #...
+}
+
+count_by_ROI <- function(img) {
+  #...
+}
+
+
+##%######################################################%##
+#                                                          #
+####                   Volumetry flow                   ####
+#                                                          #
+##%######################################################%##
+
+volumetry_flow <- workflow(name = "volumetry",
+                             work_dir = "~/flow/volumetry",
+                             inputs = "T1")
+
+volumetry_flow  %>% 
+  step(register_to_template,
+      inputs = "T1",
+      output = c("T1 (MNI)", "Affine transform (Native -> MNI)"),
+      template = template) %>% 
+  step(get_scale_parameter,
+      inputs = "Affine transform (Native -> MNI)",
+      output = "Scale parameter")
+
+volumetry_flow %>% 
+  step(bfc,
+       inputs = "T1 (MNI)",
+       output = "Bias field corrected T1")
+
+volumetry_flow %>% 
+  step(make_brain_extraction,
+       inputs = "Bias field corrected T1",
+       output = "Brain mask")
+
+volumetry_flow %>% 
+  step(function(A, B) {A * B},
+       inputs = c("Bias field corrected T1", "Brain mask"),
+       output = "Skull-stripped T1")
+
+volumetry_flow %>% 
+  step(get_segmentation,
+       inputs = "Skull-stripped T1",
+       output = "Segmented T1")
+
+volumetry_flow %>% 
+  step(count_by_ROI,
+       inputs = "Brain mask",
+       output = "Brain volume (MNI)")
+
+volumetry_flow %>% 
+  step(function(A, B) {A * B},
+       inputs = c("Brain volume (MNI)", "Scale parameter"),
+       output = "Brain volume")
+
+volumetry_flow %>% 
+  step(count_by_ROI,
+       inputs = "Segmented T1",
+       output = "Tissue volume (MNI)")
+
+volumetry_flow %>% 
+  step(function(A, B) {A * B},
+       inputs = c("Tissue volume (MNI)", "Scale parameter"),
+       output = "Tissue volume")
+
+```
+
+
+In `tidyneuro`, a _workflow_ is an ordered collection of processes that convert inputs into outputs, such that the output of a process may be the input to another one.
+
+By defining the appropriate functions, one can model the pipeline in the correct order and obtain a flow as the one depicted in the following figure.
+
+```{r volumetry, echo = FALSE}
+volumetry_flow %>% plot()
+```
+
+## Example
+
+This is a basic example which shows you how to solve a common problem:
+
+```{r example}
+library(tidyneuro)
+## basic example code
+```
+

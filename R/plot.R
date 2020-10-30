@@ -19,11 +19,18 @@ plot <- function(flow) {
   names(av_colors) <- c("Input", setdiff(unique(flow$node_types), c("Input", "Output")), "Output")
   colors <- av_colors[flow$node_types]
 
-  attrs <- list(graph = list(bgcolor = "#FFFFFF"),
-                edge = list(arrowsize = "0.5",
+  attrs <- list(graph = list(bgcolor = "#FFFFFF",
+                             splines = "spline",
+                             ratio = "expand",
+                             ranksep = "0.3",
+                             center = TRUE),
+                edge = list(arrowsize = "0.6",
+                            arrowhead = "vee",
                             style = "lty",
-                            minlen = "1"),
+                            minlen = "2"),
                 node = list(color = "transparent",
+                            fontsize = 16,
+                            shape = "plaintext",
                             fixedsize = FALSE,
                             fillcolor = "transparent"))
   # names(colors) <- labels
