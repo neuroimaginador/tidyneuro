@@ -181,7 +181,7 @@ In `tidyneuro`, a _workflow_ is an ordered collection of processes that convert 
 
 By defining the appropriate functions, one can model the pipeline in the correct order and obtain a flow as the one depicted in the following figure.
 
-```{r example_flow, echo = FALSE, fig.dim = c(17, 9), out.width="50%", out.height="50%"}
+```{r example_flow, echo = FALSE, fig.dim = c(17, 9), out.width="50%", out.height="50%", fig.align="center"}
 f <- function(a, b) {a + b}
 
 my_flow <- workflow(name = "test", 
@@ -208,7 +208,7 @@ library(tidyneuro)
 ## basic example code
 ```
 
-```{r volumetry, echo = FALSE, dpi=96, fig.dim=c(14,16), out.width="80%", out.height="80%"}
+```{r volumetry, echo = FALSE, dpi=96, fig.dim=c(14,16), out.width="80%", out.height="80%", fig.align="center"}
 volumetry_flow %>% plot()
 ```
 

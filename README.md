@@ -104,7 +104,7 @@ By defining the appropriate functions, one can model the pipeline in the
 correct order and obtain a flow as the one depicted in the following
 figure.
 
-<img src="man/figures/README-example_flow-1.png" width="50%" height="50%" />
+<img src="man/figures/README-example_flow-1.png" width="50%" height="50%" style="display: block; margin: auto;" />
 
 In this case, we have 3 inputs and several outputs. The arrows indicate
 which inputs are used to compute each of the other outputs.
@@ -120,7 +120,7 @@ library(tidyneuro)
 ## basic example code
 ```
 
-<img src="man/figures/README-volumetry-1.png" width="80%" height="80%" />
+<img src="man/figures/README-volumetry-1.png" width="80%" height="80%" style="display: block; margin: auto;" />
 
 ## Code of Conduct
 
