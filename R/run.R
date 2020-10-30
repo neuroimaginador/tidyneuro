@@ -276,14 +276,14 @@ run <- function(flow,
 
 }
 
-#' @title Remove Previously Computed Outputs
-#'
-#' @description This function deletes previously computed outputs inside the flow.
-#'
-#' @param flow    (a workflow object) The flow for which outputs are to be removed.
-#'
-#' @return (Invisibly) the same flow, without pre-computed outputs.
-#'
+# @title Remove Previously Computed Outputs
+#
+# @description This function deletes previously computed outputs inside the flow.
+#
+# @param flow    (a workflow object) The flow for which outputs are to be removed.
+#
+# @return (Invisibly) the same flow, without pre-computed outputs.
+#
 .reset_outputs <- function(flow) {
 
   flow$computed_outputs <- list()
@@ -294,18 +294,18 @@ run <- function(flow,
 
 }
 
-#' @title Pipeline to Execute
-#'
-#' @description This internal function returns the list of steps to compute the given output.
-#'
-#' @param flow            (a workflow object) The flow.
-#' @param output          (character) The name of the output to compute.
-#' @param given_inputs    (list) Additional inputs provided, Default: NULL
-#'
-#' @return A vector with the corresponding steps needed to calculate the \code{output}.
-#'
-#' @details DETAILS
-#'
+# @title Pipeline to Execute
+#
+# @description This internal function returns the list of steps to compute the given output.
+#
+# @param flow            (a workflow object) The flow.
+# @param output          (character) The name of the output to compute.
+# @param given_inputs    (list) Additional inputs provided, Default: NULL
+#
+# @return A vector with the corresponding steps needed to calculate the \code{output}.
+#
+# @details DETAILS
+#
 .which_to_compute <- function(flow, output, given_inputs = NULL) {
 
   # If it's an input, return c()

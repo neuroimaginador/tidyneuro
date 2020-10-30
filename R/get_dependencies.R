@@ -1,11 +1,9 @@
-#' @title Get Dependencies of a Function
-#'
-#' @description This function allows to obtain the dependencies of a given function.
-#'
-#' @param script     (a function) A function to determine its dependencies
-#'
-#' @return A vector with the package dependencies of the given function.
-#'
+# Get Dependencies of a Function
+#
+# This function allows to obtain the dependencies of a given function.
+# script     (a function) A function to determine its dependencies
+#
+# returns: A vector with the package dependencies of the given function.
 .get_dependencies <- function(script) {
 
   # Available packages
