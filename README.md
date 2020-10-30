@@ -69,23 +69,25 @@ situations before:
     that a process in the pipeline can be, for example, a function to
     generate a plot, or to compute image statistics, or a function that
     wraps a random forest which has been previously trained to infer a
-    labelling on the input image. The `wf4ni` package provides the tools
-    to extend this functionality to other *computations*: machine
+    labelling on the input image. The `tidyneuro` package provides the
+    tools to extend this functionality to other *computations*: machine
     learning or deep learning models, for instance.
 -   **Simple memory management**. The memory used by intermediate
     outputs when running a flow is automatically released when those
     outputs are no longer needed for further results, thus keeping the
     memory footprint as small as possible.
--   Work natively with **NIfTI files**. \#\# Installation
+-   Work natively with **NIfTI files**.
 
-You can install the released version of tidyneuro from
-[CRAN](https://CRAN.R-project.org) with:
+## Installation
 
-``` r
-install.packages("tidyneuro")
-```
+<!-- You can install the released version of tidyneuro from [CRAN](https://CRAN.R-project.org) with: -->
+<!-- ``` r -->
+<!-- install.packages("tidyneuro") -->
+<!-- ``` -->
+<!-- And the development version from [GitHub](https://github.com/) with: -->
 
-And the development version from [GitHub](https://github.com/) with:
+You can install the development version from [the GitHub
+repo](https://github.com/neuroimaginador/tidyneuro) with:
 
 ``` r
 # install.packages("remotes")
@@ -93,23 +95,6 @@ remotes::install_github("neuroimaginador/tidyneuro")
 ```
 
 ## The `tidyneuro` approach
-
-    #> 
-    #> Attaching package: 'tidyneuro'
-    #> The following object is masked from 'package:stats':
-    #> 
-    #>     step
-    #> The following object is masked from 'package:graphics':
-    #> 
-    #>     plot
-    #> The following objects are masked from 'package:base':
-    #> 
-    #>     log, plot
-    #> [1] "T1"
-    #> [1] "object"
-    #> Registered S3 method overwritten by 'pryr':
-    #>   method      from
-    #>   print.bytes Rcpp
 
 In `tidyneuro`, a *workflow* is an ordered collection of processes that
 convert inputs into outputs, such that the output of a process may be
@@ -119,13 +104,27 @@ By defining the appropriate functions, one can model the pipeline in the
 correct order and obtain a flow as the one depicted in the following
 figure.
 
-<img src="man/figures/README-volumetry-1.png" width="100%" />
+<img src="man/figures/README-example_flow-1.png" width="50%" height="50%" />
+
+In this case, we have 3 inputs and several outputs. The arrows indicate
+which inputs are used to compute each of the other outputs.
 
 ## Example
 
-This is a basic example which shows you how to solve a common problem:
+This is a basic example which shows you how to solve a common problem,
+the computation of tissue (gray matter, white matter and cephalospinal
+fluid) volume:
 
 ``` r
 library(tidyneuro)
 ## basic example code
 ```
+
+<img src="man/figures/README-volumetry-1.png" width="80%" height="80%" />
+
+## Code of Conduct
+
+Please note that the tidyneuro project is released with a [Contributor
+Code of
+Conduct](https://contributor-covenant.org/version/2/0/CODE_OF_CONDUCT.html).
+By contributing to this project, you agree to abide by its terms.

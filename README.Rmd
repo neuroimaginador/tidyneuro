@@ -34,18 +34,21 @@ The goal of this package is to provide certain features to manage the situations
 - Creation of a **common interface for the execution** of Neuroimaging workflows, reducing the need of constantly looking up in the documentation of several packages. Instead of using a different syntax for each function, just _execute_ the flow, specifying the required outputs, and all associated functions are run in the right order to get the results.
 - Ability to **automatically track dependencies**. Every time a new function or process is inserted into a flow, the _flow_ object tries to guess its dependencies, by looking up in the different loaded namespaces, and storing (internally) this information to be used in the export stage.
 - **Workflows can be shared** across multiple systems. A _flow_ object can be exported and saved as a regular .zip file, and then reloaded in a different computer. When importing a flow, the package detects (from in internals) if there are missing dependencies (packages not installed on the system) and prompts the user to install them.
-- **Extensibility**. A node in the workflow is a single function in `R`, that is, something that can be computed in runtime. This means that a process in the pipeline can be, for example, a function to generate a plot, or to compute image statistics, or a function that wraps a random forest which has been previously trained to infer a labelling on the input image. The `wf4ni` package provides the tools to extend this functionality to other _computations_: machine learning or deep learning models, for instance.
+- **Extensibility**. A node in the workflow is a single function in `R`, that is, something that can be computed in runtime. This means that a process in the pipeline can be, for example, a function to generate a plot, or to compute image statistics, or a function that wraps a random forest which has been previously trained to infer a labelling on the input image. The `tidyneuro` package provides the tools to extend this functionality to other _computations_: machine learning or deep learning models, for instance.
 - **Simple memory management**. The memory used by intermediate outputs when running a flow is automatically released when those outputs are no longer needed for further results, thus keeping the memory footprint as small as possible.
 - Work natively with **NIfTI files**.
+
 ## Installation
 
-You can install the released version of tidyneuro from [CRAN](https://CRAN.R-project.org) with:
+<!-- You can install the released version of tidyneuro from [CRAN](https://CRAN.R-project.org) with: -->
 
-``` r
-install.packages("tidyneuro")
-```
+<!-- ``` r -->
+<!-- install.packages("tidyneuro") -->
+<!-- ``` -->
 
-And the development version from [GitHub](https://github.com/) with:
+<!-- And the development version from [GitHub](https://github.com/) with: -->
+
+You can install the development version from [the GitHub repo](https://github.com/neuroimaginador/tidyneuro) with:
 
 ``` r
 # install.packages("remotes")
@@ -54,8 +57,8 @@ remotes::install_github("neuroimaginador/tidyneuro")
 
 ## The `tidyneuro` approach
 
-```{r echo = FALSE}
-library(tidyneuro)
+```{r echo = FALSE, warning=FALSE, message=FALSE}
+suppressPackageStartupMessages(library(tidyneuro))
 ##%######################################################%##
 #                                                          #
 ####                Auxiliary functions                 ####
@@ -178,16 +181,38 @@ In `tidyneuro`, a _workflow_ is an ordered collection of processes that convert 
 
 By defining the appropriate functions, one can model the pipeline in the correct order and obtain a flow as the one depicted in the following figure.
 
-```{r volumetry, echo = FALSE}
-volumetry_flow %>% plot()
+```{r example_flow, echo = FALSE, fig.dim = c(17, 9), out.width="50%", out.height="50%"}
+f <- function(a, b) {a + b}
+
+my_flow <- workflow(name = "test", 
+                    inputs = c("Input1", "Input2"))
+
+my_flow %>% 
+  step(f, inputs = c("Input1", "Input2"), output = "Output1") %>% 
+  inputs("Input3") %>% 
+  step(f, inputs = c("Input2", "Input3"), output = "Output2") %>% 
+  step(f, inputs = c("Input1", "Input3"), output = "Output3") %>% 
+  step(f, inputs = c("Output3", "Input3"), output = "Output4")
+
+my_flow %>% plot()
 ```
+
+In this case, we have 3 inputs and several outputs. The arrows indicate which inputs are used to compute each of the other outputs.
 
 ## Example
 
-This is a basic example which shows you how to solve a common problem:
+This is a basic example which shows you how to solve a common problem, the computation of tissue (gray matter, white matter and cephalospinal fluid) volume:
 
 ```{r example}
 library(tidyneuro)
 ## basic example code
 ```
 
+```{r volumetry, echo = FALSE, dpi=96, fig.dim=c(14,16), out.width="80%", out.height="80%"}
+volumetry_flow %>% plot()
+```
+
+
+## Code of Conduct
+
+Please note that the tidyneuro project is released with a [Contributor Code of Conduct](https://contributor-covenant.org/version/2/0/CODE_OF_CONDUCT.html). By contributing to this project, you agree to abide by its terms.

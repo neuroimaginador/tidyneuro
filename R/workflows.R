@@ -84,9 +84,6 @@ workflow <- function(name = "",
                            name = input_names,
                            type = input_types)
 
-    print(input_names)
-    print(input_types)
-
   }
 
   # List of all possible outputs of the flow
