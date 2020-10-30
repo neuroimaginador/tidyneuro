@@ -72,19 +72,59 @@
 <a href="#tidyneuro" class="anchor"></a>tidyneuro</h1></div>
 <!-- badges: start -->
 
-<p>The goal of tidyneuro is to …</p>
-<div id="installation" class="section level2">
-<h2 class="hasAnchor">
-<a href="#installation" class="anchor"></a>Installation</h2>
+<p>There are a lot of packages in the R ecosystem focused on several aspects of Neuroimage processing, many of them listed in the <a href="https://CRAN.R-project.org/view=MedicalImaging">CRAN Task View: Medical Imaging</a> section: <code>oro.nifti</code>, <code>oro.dicom</code>, <code>RNifti</code>, <code>fmri</code>, <code>divest</code> (among others) for reading/writing of images; <code>ANTsR</code>, <code>fslr</code> for more advanced processing methods; <code>RNiftyReg</code> specialized in registration, <code>mritc</code> focused in image segmentation. Many more, for DTI, fMRI, molecular imaging, and visualization are available in <a href="https://CRAN.R-project.org">CRAN</a>.</p>
+<p>However, to get a complete Neuroimaging pipeline working, it is common to rely on several different packages, and, in general, no single package can offer all the functionalities desired. Tracking the requirements and dependencies of a pipeline is time-consuming, since the user has to manually find, for each function used, the packages it depends on.</p>
+<p>In addition, the most typical form of building a pipeline in R is via scripting. Once the needed functions are defined or imported from a third-party package, one or more scripts are written in order to get all processes done.</p>
+<p>But scripts are error-prone, difficult to trace and debug if the script is large, and require some level of customization when one tries to run the script in a different environment (computer, laboratory…). These cons make us think of defining self-contained workflows, easily shareable, which can perform the same operations as a script but with greater legibility and traceability.</p>
+<p>The goal of this package is to provide certain features to manage the situations before:</p>
+<ul>
+<li>
+<strong>Simple definition of Neuroimaging flows</strong>, which can incorporate any <code>R</code> function (including those from other packages, such as <code>ANTsR</code> or <code>fslr</code>) as a part of it. At definition time, the package warns about inconsistencies on the flow from inputs to outputs (undefined functions or variables).</li>
+<li>Creation of a <strong>common interface for the execution</strong> of Neuroimaging workflows, reducing the need of constantly looking up in the documentation of several packages. Instead of using a different syntax for each function, just <em>execute</em> the flow, specifying the required outputs, and all associated functions are run in the right order to get the results.</li>
+<li>Ability to <strong>automatically track dependencies</strong>. Every time a new function or process is inserted into a flow, the <em>flow</em> object tries to guess its dependencies, by looking up in the different loaded namespaces, and storing (internally) this information to be used in the export stage.</li>
+<li>
+<strong>Workflows can be shared</strong> across multiple systems. A <em>flow</em> object can be exported and saved as a regular .zip file, and then reloaded in a different computer. When importing a flow, the package detects (from in internals) if there are missing dependencies (packages not installed on the system) and prompts the user to install them.</li>
+<li>
+<strong>Extensibility</strong>. A node in the workflow is a single function in <code>R</code>, that is, something that can be computed in runtime. This means that a process in the pipeline can be, for example, a function to generate a plot, or to compute image statistics, or a function that wraps a random forest which has been previously trained to infer a labelling on the input image. The <code>wf4ni</code> package provides the tools to extend this functionality to other <em>computations</em>: machine learning or deep learning models, for instance.</li>
+<li>
+<strong>Simple memory management</strong>. The memory used by intermediate outputs when running a flow is automatically released when those outputs are no longer needed for further results, thus keeping the memory footprint as small as possible.</li>
+<li>Work natively with <strong>NIfTI files</strong>. ## Installation</li>
+</ul>
 <p>You can install the released version of tidyneuro from <a href="https://CRAN.R-project.org">CRAN</a> with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit">
 <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="st">"tidyneuro"</span><span class="op">)</span></pre></div>
+<p>And the development version from <a href="https://github.com/">GitHub</a> with:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit">
+<span class="co"># install.packages("remotes")</span>
+<span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html">install_github</a></span><span class="op">(</span><span class="st">"neuroimaginador/tidyneuro"</span><span class="op">)</span></pre></div>
+<div id="the-tidyneuro-approach" class="section level2">
+<h2 class="hasAnchor">
+<a href="#the-tidyneuro-approach" class="anchor"></a>The <code>tidyneuro</code> approach</h2>
+<div class="sourceCode" id="cb3"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="co">#&gt; </span></span>
+<span id="cb3-2"><a href="#cb3-2"></a><span class="co">#&gt; Attaching package: 'tidyneuro'</span></span>
+<span id="cb3-3"><a href="#cb3-3"></a><span class="co">#&gt; The following object is masked from 'package:stats':</span></span>
+<span id="cb3-4"><a href="#cb3-4"></a><span class="co">#&gt; </span></span>
+<span id="cb3-5"><a href="#cb3-5"></a><span class="co">#&gt;     step</span></span>
+<span id="cb3-6"><a href="#cb3-6"></a><span class="co">#&gt; The following object is masked from 'package:graphics':</span></span>
+<span id="cb3-7"><a href="#cb3-7"></a><span class="co">#&gt; </span></span>
+<span id="cb3-8"><a href="#cb3-8"></a><span class="co">#&gt;     plot</span></span>
+<span id="cb3-9"><a href="#cb3-9"></a><span class="co">#&gt; The following objects are masked from 'package:base':</span></span>
+<span id="cb3-10"><a href="#cb3-10"></a><span class="co">#&gt; </span></span>
+<span id="cb3-11"><a href="#cb3-11"></a><span class="co">#&gt;     log, plot</span></span>
+<span id="cb3-12"><a href="#cb3-12"></a><span class="co">#&gt; [1] "T1"</span></span>
+<span id="cb3-13"><a href="#cb3-13"></a><span class="co">#&gt; [1] "object"</span></span>
+<span id="cb3-14"><a href="#cb3-14"></a><span class="co">#&gt; Registered S3 method overwritten by 'pryr':</span></span>
+<span id="cb3-15"><a href="#cb3-15"></a><span class="co">#&gt;   method      from</span></span>
+<span id="cb3-16"><a href="#cb3-16"></a><span class="co">#&gt;   print.bytes Rcpp</span></span></code></pre></div>
+<p>In <code>tidyneuro</code>, a <em>workflow</em> is an ordered collection of processes that convert inputs into outputs, such that the output of a process may be the input to another one.</p>
+<p>By defining the appropriate functions, one can model the pipeline in the correct order and obtain a flow as the one depicted in the following figure.</p>
+<p><img src="reference/figures/README-volumetry-1.png" width="100%"></p>
 </div>
 <div id="example" class="section level2">
 <h2 class="hasAnchor">
 <a href="#example" class="anchor"></a>Example</h2>
 <p>This is a basic example which shows you how to solve a common problem:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit">
+<div class="sourceCode" id="cb4"><pre class="downlit">
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/neuroimaginador/tidyneuro">tidyneuro</a></span><span class="op">)</span>
 <span class="co">## basic example code</span></pre></div>
 </div>
@@ -118,8 +158,8 @@
   <div class="dev-status">
 <h2>Dev status</h2>
 <ul class="list-unstyled">
-<li><a href="https://codecov.io/gh/neuroimaginador/tidyneuro?branch=master"><img src="https://codecov.io/gh/neuroimaginador/tidyneuro/branch/master/graph/badge.svg" alt="Codecov test coverage"></a></li>
 <li><a href="https://github.com/neuroimaginador/tidyneuro/actions"><img src="https://github.com/neuroimaginador/tidyneuro/workflows/R-CMD-check/badge.svg" alt="R build status"></a></li>
+<li><a href="https://codecov.io/gh/neuroimaginador/tidyneuro?branch=master"><img src="https://codecov.io/gh/neuroimaginador/tidyneuro/branch/master/graph/badge.svg" alt="Codecov test coverage"></a></li>
 </ul>
 </div>
 </div>
