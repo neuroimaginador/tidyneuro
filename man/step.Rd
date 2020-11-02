@@ -20,7 +20,7 @@ step(
 \item{inputs}{(list) List of the inputs needed for the function to be executed, defaults to the formal arguments of the function,
 list())}
 
-\item{output}{(name) The name to assign to the output of the function.}
+\item{output}{(name) The name(s) to assign to the output(s) of the function.}
 
 \item{...}{extra parameters for the function, allows to parameterize the flow.}
 }
@@ -28,5 +28,5 @@ list())}
 The flow with the function added
 }
 \description{
-This function adds another function to a given flow.
+This function adds a function to a given flow.
 }

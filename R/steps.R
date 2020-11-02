@@ -17,13 +17,13 @@
 
 #' @title Add a Function to a Flow
 #'
-#' @description This function adds another function to a given flow.
+#' @description This function adds a function to a given flow.
 #'
 #' @param flow       (a flow) The flow where to add a new function
 #' @param f       (a function) The function itself to be added
 #' @param inputs     (list) List of the inputs needed for the function to be executed, defaults to the formal arguments of the function,
 #'    list())
-#' @param output     (name) The name to assign to the output of the function.
+#' @param output     (name) The name(s) to assign to the output(s) of the function.
 #' @param ...        extra parameters for the function, allows to parameterize the flow.
 #'
 #' @return The flow with the function added
@@ -36,8 +36,6 @@ step <- function(flow,
                          output,
                          ...) {
 
-  # browser()
-
   # Basic checks
   stopifnot(inherits(flow, "workflow"))
   stopifnot(inherits(f, "function"))
@@ -48,7 +46,6 @@ step <- function(flow,
     stop("Output currently in the flow.", call. = FALSE)
 
   }
-
 
   if (length(inputs) > 0) inputs <- unlist(inputs)
 
@@ -70,7 +67,6 @@ step <- function(flow,
     igraph::add_vertices(nv = 1, name = id, type = type)
   new_vertex_idx <- length(igraph::V(flow$graph))
 
-  # browser()
   if (length(inputs) > 0) {
 
     input_ids <- match(inputs, flow$outputs)
@@ -92,7 +88,6 @@ step <- function(flow,
 
   # Add its pipeline (updating all previous pipelines)
   inputs <- which(flow$node_types == "Input")
-    # which(V(flow$graph)$type == "Input")
   for (target_idx in setdiff(seq(new_vertex_idx), inputs)) {
 
     # Path from the current node to inputs
@@ -137,13 +132,12 @@ step <- function(flow,
     # Add package dependencies
     flow$pkgs[[id]] <- .get_dependencies(f)
 
-
     for (out_id in seq_along(output)) {
 
       out <- output[out_id]
 
       flow$outputs <- c(flow$outputs, out)
-      flow$node_types <- c(flow$node_types, "Output")
+      flow$node_types <- c(flow$node_types, "HubOutput")
       names(flow$node_types)[length(flow$node_types)] <- out
 
       flow$graph <- flow$graph %>%

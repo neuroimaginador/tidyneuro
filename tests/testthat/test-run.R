@@ -1,4 +1,4 @@
-context("Plot")
+context("Run")
 
 test_that("tidyneuro runs simple workflows", {
 
