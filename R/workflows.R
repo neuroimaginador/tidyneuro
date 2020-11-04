@@ -39,6 +39,7 @@ workflow <- function(name = "",
   flow <- new.env()
   flow$name <- as.character(name)
   flow$work_dir <- work_dir
+  flow$calls <- list()
 
   # List of flow inputs and outputs
   flow$inputs <- list()
@@ -49,6 +50,7 @@ workflow <- function(name = "",
   # List of flow processes (both models and functions)
   flow$processes <- list()
   flow$pkgs <- list()
+  flow$env <- rlang::new_environment()
 
   # List of pipelines to execute for each process and of required inputs
   flow$pipeline <- list()
@@ -73,6 +75,10 @@ workflow <- function(name = "",
                          length(input_names))
 
     }
+
+    flow$calls <- c(flow$calls,
+                    list(list(inputs = input_names,
+                              outputs = c())))
 
     flow$inputs <- input_names
     flow$element_types <- input_types
@@ -194,6 +200,11 @@ inputs <- function(flow, ...) {
                          length(input_names))
 
     }
+
+    flow$calls <- c(flow$calls,
+                    list(list(inputs = input_names,
+                              outputs = c())))
+
 
     flow$log(level = "DEBUG",
              message = paste0("Adding inputs ",

@@ -23,7 +23,9 @@ Imports:
     purrr,
     Rgraphviz,
     stringr,
-    scales
+    scales,
+    rlang,
+    usethis
 Suggests: 
     crayon,
     spelling,

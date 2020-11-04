@@ -1,88 +1,84 @@
 # Get Dependencies of a Function
 #
 # This function allows to obtain the dependencies of a given function.
-# script     (a function) A function to determine its dependencies
+# h     (a function) A function to determine its dependencies
+# this_env An environment where to add the functions not stored in any package.
 #
-# returns: A vector with the package dependencies of the given function.
-.get_dependencies <- function(script) {
+# returns: A vector with the package and function dependencies of the given function.
+#
+get_deps <- function(h, this_env) {
 
-  # Available packages
-  r_pkgs <- unique(c(row.names(utils::installed.packages()), loadedNamespaces()))
-  rInst <- paste0(r_pkgs, "::")
+  # Get environment/package of function h
+  # browser()
+  # if (is.character(h)) {
+  #
+  #   h <- dynGet(h)
+  #
+  # }
+  # h <- match.fun(h)
+  str <- env_name_fun(h)
 
-  # Let us take the body of the function
-  if (inherits(script, "function")) {
+  if (stringr::str_detect(str,
+                          pattern = stringr::fixed("namespace:"))) return(str)
 
-    x <- utils::capture.output(print(script))
+  # Get function calls and corresponding namespaces
+  funs <- get_f_calls(h)
+  str <- sapply(funs, env_name_fun, USE.NAMES = FALSE)
+  id_null <- sapply(str, is.null)
+  str <- str[!id_null] %>% unlist()
+  funs <- funs[!id_null]
 
-  } else {
+  # Collect package dependencies
+  id_pkgs <- str %>%
+    stringr::str_detect(pattern = stringr::fixed("namespace:"))
 
-    x <- readLines(script, warn = FALSE)
+  pkgs <- str[id_pkgs]
+  funs <- funs[!id_pkgs]
 
-  }
+  # If not is missing this_env, add the functions
+  # to the environment
+  if (!missing(this_env)) {
 
-  # Minimal cleaning of the output
-  x <- gsub("^\\s+", "", x)
-  x <- x[!grepl("^#", x)]
+    for (fu in funs) {
 
-  # Look for required namespaces (including the namespace where the function
-  # belongs to)
-  x2 <- gsub(x = x[grepl("<environment: namespace:", x = x)],
-             pattern = "<environment: namespace:", replacement = "")
-  t0 <- sapply(r_pkgs, grep, x = x2, value = TRUE)
-  t1 <- t0[which(sapply(t0, function(y) length(y) > 0))] %>% names()
+      assign(x = fu,
+             value = pryr::fget(fu,
+                                env = pryr::enclosing_env(h)),
+             envir = this_env)
 
-  x <- x[!grepl("^<", x)]
-  s0 <- sapply(paste0("\\b", rInst), grep, x = x, value = TRUE)
-  s1 <- s0[which(sapply(s0, function(y) length(y) > 0))]
-
-  names(s1) <- gsub("\\\\b", "", names(s1))
-
-  ret <- c()
-  if (length(names(s1)) > 0)
-    ret <- sapply(names(s1), function(nm) {
-
-      out <- unlist(lapply(s1[[nm]], function(xx) {
-
-        y <- gsub("[\\\",\\(\\)]", "",
-                  unlist(regmatches(xx,
-                                    gregexpr(paste0(nm, "(.*?)[\\)\\(,]"), xx))))
-
-        names(y) <- NULL
-
-        if (any(y %in% paste0(nm, c("\"", "'"))))
-          y <- NULL
-
-        return(y)
-
-      }))
-
-      out <- gsub("\\$.*", "", out)
-      out <- unique(out)
-
-      return(out)
-
-    })
-
-  if (length(ret) > 0) {
-
-    ret <- sapply(ret, function(L) strsplit(x = L, split = "::")[[1]][1])
+    }
 
   }
 
-  # Look for "requires"
-  lines <- grep("(require|library)", x)
-  pkgs <- c()
-  if (length(lines) > 0) {
+  # Recurse on functions not in any package
+  str <- sapply(funs, get_deps) %>% unlist()
 
-    L <- unlist(strsplit(x[lines], split = "\\(|\\)"))
-    pkgs <- L[L %in% row.names(utils::installed.packages())]
+  return(c(pkgs, funs, str))
 
+}
+
+env_name_fun <- function(h) {
+
+  # h <- match.fun(h)
+  # print(h)
+  if (is.character(h)) h <- dynGet(h, ifnotfound = c)
+  env <- pryr::enclosing_env(h)
+  if (!rlang::is_environment(env)) return("")
+
+  return(rlang::env_name(env))
+
+}
+
+get_f_calls <- function (f) {
+  if (is.function(f)) {
+    get_f_calls(body(f))
   }
-
-  # Concatenate all dependencies
-  pkg <- c(ret, pkgs, t1)
-
-  return(as.vector(pkg))
-
+  else if (is.call(f)) {
+    fname <- as.character(f[[1]])
+    if (identical(fname, ".Internal"))
+      return(fname)
+    if (identical(fname[1], "::"))
+      fname <- paste0(fname[2], "::", fname[3])
+    unique(c(fname, unlist(lapply(f[-1], get_f_calls), use.names = FALSE)))
+  }
 }

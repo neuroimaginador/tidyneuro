@@ -25,11 +25,13 @@ print.workflow <- function(x, ...) {
 
   }
 
+  output_types <- c("Output", "HubOutput")
+
   # Name, inputs and outputs
   flow_name <- x$name %>% bold()
   flow_inputs <- stringr::str_flatten(x$inputs %>% green(),
                                       collapse = ", ")
-  flow_outputs <- stringr::str_flatten((x$outputs[x$node_types == "Output"]) %>% blue(),
+  flow_outputs <- stringr::str_flatten((x$outputs[x$node_types %in% output_types]) %>% blue(),
                               collapse = ", ")
 
   cat(underline("workflow with:\n"),
@@ -38,9 +40,17 @@ print.workflow <- function(x, ...) {
       " outputs:", flow_outputs, "\n")
 
   # # Dependencies
-  flow_deps <- x$pkgs %>% unlist() %>% unique()
+  flow_deps <- x$pkgs %>%
+    unlist() %>%
+    unique()
 
-  if (length(flow_deps) > 0) {
+  pkgs_id <- flow_deps %>%
+    stringr::str_which(pattern = stringr::fixed("namespace:"))
+
+  if (length(pkgs_id) > 0) {
+
+    flow_deps <- flow_deps[pkgs_id] %>%
+      stringr::str_remove_all(pattern = stringr::fixed("namespace:"))
 
     cat("It depends on functions of the following packages:",
         stringr::str_flatten(flow_deps %>% red(), collapse = ", "), "\n")
@@ -84,7 +94,8 @@ summary.workflow <- function(object, ...) {
   print(object)
 
   # Dependencies between inputs and outputs
-  outputs <- object$outputs[object$node_types == "Output"]
+  output_types <- c("Output", "HubOutput")
+  outputs <- object$outputs[object$node_types %in% output_types]
 
   relationships <- c()
 

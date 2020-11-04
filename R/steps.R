@@ -14,7 +14,6 @@
 #  - update(flow, output_name, new_function)
 
 
-
 #' @title Add a Function to a Flow
 #'
 #' @description This function adds a function to a given flow.
@@ -31,10 +30,10 @@
 #' @export
 #'
 step <- function(flow,
-                         f,
-                         inputs = ifelse(inherits(f, "function"), list(names(formals(f))), list()),
-                         output,
-                         ...) {
+                 f,
+                 inputs = ifelse(inherits(f, "function"), list(names(formals(f))), list()),
+                 output,
+                 ...) {
 
   # Basic checks
   stopifnot(inherits(flow, "workflow"))
@@ -70,6 +69,12 @@ step <- function(flow,
   if (length(inputs) > 0) {
 
     input_ids <- match(inputs, flow$outputs)
+
+    flow$calls <- c(flow$calls,
+                    list(list(inputs = flow$outputs[input_ids],
+                         outputs = output,
+                         output_id = id)))
+
     flow$inmediate_inputs[[id]] <- flow$outputs[input_ids]
 
     flow$graph <- flow$graph %>%
@@ -121,7 +126,7 @@ step <- function(flow,
     flow$node_types <- c(flow$node_types, "Output")
     names(flow$node_types)[length(flow$node_types)] <- output
     # Add package dependencies
-    flow$pkgs[[output]] <- .get_dependencies(f)
+    flow$pkgs[[output]] <- get_deps(f, flow$env)
 
   } else {
 
@@ -130,7 +135,7 @@ step <- function(flow,
     flow$node_types <- c(flow$node_types, "Hub")
     names(flow$node_types)[length(flow$node_types)] <- id
     # Add package dependencies
-    flow$pkgs[[id]] <- .get_dependencies(f)
+    flow$pkgs[[id]] <- get_deps(f, flow$env)
 
     for (out_id in seq_along(output)) {
 
@@ -157,11 +162,9 @@ step <- function(flow,
 
     flow$graph <- flow$graph %>%
       igraph::add_edges(edges = as.vector(rbind(new_vertex_idx,
-                                        seq(new_vertex_idx + 1, n))))
-
+                                                seq(new_vertex_idx + 1, n))))
 
   }
-
 
   return(invisible(flow))
 
