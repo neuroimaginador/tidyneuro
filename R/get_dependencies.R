@@ -63,7 +63,7 @@ env_name_fun <- function(h) {
   # print(h)
   if (is.character(h)) h <- dynGet(h, ifnotfound = c)
   env <- pryr::enclosing_env(h)
-  if (!rlang::is_environment(env)) return("")
+  if (!rlang::is_environment(env)) return(NULL)
 
   return(rlang::env_name(env))
 
