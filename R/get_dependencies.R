@@ -15,7 +15,7 @@ get_deps <- function(h, this_env) {
   #   h <- dynGet(h)
   #
   # }
-  # h <- match.fun(h)
+  h <- match.fun(h)
   str <- env_name_fun(h)
 
   if (stringr::str_detect(str,
@@ -53,15 +53,43 @@ get_deps <- function(h, this_env) {
   # Recurse on functions not in any package
   str <- sapply(funs, get_deps) %>% unlist()
 
-  return(c(pkgs, funs, str))
+  # All dependencies
+  deps <- setdiff(unique(c(pkgs, funs, str)), "namespace:base")
+
+  return(deps)
 
 }
 
 env_name_fun <- function(h) {
 
-  # h <- match.fun(h)
+  if (is.character(h)) {
+
+    if (stringr::str_detect(h, pattern = stringr::fixed("::"))) {
+
+      return(paste0("namespace:",
+                    stringr::str_split(h,
+                                       pattern = stringr::fixed("::"))[[1]][1]))
+
+    }
+
+    if (h == "%>%") {
+
+      return("namespace:magrittr")
+
+    }
+
+    # h <- eval(parse(text = h))
+
+  }
+
+
+  h <- match.fun(h)
+  pkg <- methods::packageSlot(h)
+
+  if (!is.null(pkg)) return(paste0("namespace:", pkg))
   # print(h)
-  if (is.character(h)) h <- dynGet(h, ifnotfound = c)
+  # if (is.character(h)) h <- dynGet(h, ifnotfound = NULL)
+  if (is.null(h)) return(NULL)
   env <- pryr::enclosing_env(h)
   if (!rlang::is_environment(env)) return(NULL)
 
