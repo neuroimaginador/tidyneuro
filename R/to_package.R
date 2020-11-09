@@ -44,7 +44,7 @@ pack <- function(flow, path,
 
   if (requireNamespace("whoami", quietly = TRUE)) {
 
-    suppressWarnings(description$add_me())
+    try(suppressWarnings(description$add_me()))
 
   }
 
