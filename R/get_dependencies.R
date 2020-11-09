@@ -101,7 +101,7 @@ env_name_fun <- function(h,
 
     } else {
 
-      L <- help.search(pattern = h, fields = "name")
+      L <- utils::help.search(pattern = h, fields = "name")
 
       if (length(L) > 0) {
 

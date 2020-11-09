@@ -25,7 +25,7 @@ pack <- function(flow, path,
   }
 
   # Create package
-  suppressMessages(package.skeleton(name = package_name,
+  suppressMessages(utils::package.skeleton(name = package_name,
                    path = path,
                    environment = my_env,
                    encoding = "UTF-8"))

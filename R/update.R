@@ -14,7 +14,7 @@ update <- function(flow, output, new_function) {
     # should perform compatibility checks before...
 
     flow$processes[[output]] <- new_function
-    flow$pkgs[[output]] <- .get_dependencies(new_function)
+    flow$pkgs[[output]] <- get_deps(new_function)
 
   }
 
