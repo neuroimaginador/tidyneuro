@@ -41,7 +41,12 @@ pack <- function(flow, path,
 
   description$set("Title", paste0(flow$name, " Flow"))
   description$set("Description", paste0("The ", flow$name, " flow created using tidyneuro."))
-  suppressWarnings(description$add_me())
+
+  if (requireNamespace("whoami", quietly = TRUE)) {
+
+    suppressWarnings(description$add_me())
+
+  }
 
   # Add dependencies to the DESCRIPTION file
   flow_deps <- flow$pkgs %>%

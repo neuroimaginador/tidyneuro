@@ -33,7 +33,8 @@ Suggests:
     crayon,
     spelling,
     styler,
-    testthat
+    testthat,
+    whoami
 Encoding: UTF-8
 Language: en-GB
 LazyData: true
