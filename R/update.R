@@ -14,7 +14,8 @@ update <- function(flow, output, new_function) {
     # should perform compatibility checks before...
 
     flow$processes[[output]] <- new_function
-    flow$pkgs[[output]] <- get_deps(new_function)
+    flow$pkgs[[output]] <- get_deps(new_function,
+                                    this_env = flow$env)
 
   }
 
@@ -24,7 +25,8 @@ update <- function(flow, output, new_function) {
     id <- flow$inmediate_inputs[[output]]
 
     flow$processes[[id]] <- new_function
-    flow$pkgs[[id]] <- .get_dependencies(new_function)
+    flow$pkgs[[id]] <- get_deps(new_function,
+                                this_env = flow$env)
 
   }
 

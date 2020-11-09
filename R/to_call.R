@@ -34,8 +34,15 @@
   }
 
   call <- call %>%
-    stringr::str_flatten(collapse = " %>% \n") %>%
-    styler::style_text()
+    stringr::str_flatten(collapse = " %>% \n")
+
+  if (requireNamespace("styler", quietly = TRUE)) {
+
+    call <- call %>%
+      styler::style_text()
+
+  }
+
 
   return(call)
 

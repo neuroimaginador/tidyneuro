@@ -13,6 +13,8 @@ License: GPL-3
 URL: https://github.com/neuroimaginador/tidyneuro
 BugReports: https://github.com/neuroimaginador/tidyneuro/issues
 Imports: 
+    desc,
+    glue,
     graphics,
     igraph,
     magrittr,
@@ -22,15 +24,16 @@ Imports:
     pryr,
     purrr,
     Rgraphviz,
-    stringr,
-    scales,
     rlang,
+    scales,
+    stringr,
     usethis
 Suggests: 
+    covr,
     crayon,
     spelling,
-    testthat,
-    covr
+    styler,
+    testthat
 Encoding: UTF-8
 Language: en-GB
 LazyData: true
