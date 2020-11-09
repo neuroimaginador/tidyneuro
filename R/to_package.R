@@ -83,7 +83,7 @@ pack <- function(flow, path,
   cat(flow_txt, file = zzz_file)
 
   # Create project infrastructure
-  usethis::create_project(path = path, open = open)
+  usethis::create_project(path = pkg, open = open)
 
   return(invisible(TRUE))
 
