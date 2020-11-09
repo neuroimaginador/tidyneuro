@@ -6,27 +6,29 @@
 #
 # returns: A vector with the package and function dependencies of the given function.
 #
-get_deps <- function(h, this_env) {
+get_deps <- function(h, this_env,
+                     where = rlang::env_parent()) {
 
   # Get environment/package of function h
-  # browser()
-  # if (is.character(h)) {
-  #
-  #   h <- dynGet(h)
-  #
-  # }
-  h <- match.fun(h)
-  str <- env_name_fun(h)
+  str <- env_name_fun(h, search = where)
 
-  if (stringr::str_detect(str,
+  if (stringr::str_detect(str$ns,
                           pattern = stringr::fixed("namespace:"))) return(str)
 
   # Get function calls and corresponding namespaces
   funs <- get_f_calls(h)
-  str <- sapply(funs, env_name_fun, USE.NAMES = FALSE)
+
+  str <- lapply(funs,
+                function(x)
+                  env_name_fun(x,
+                               search = pryr::enclosing_env(h)))
+  fun_def <- lapply(str, function(xx) xx$fun)
+  str <- sapply(str, function(xx) xx$ns)
   id_null <- sapply(str, is.null)
   str <- str[!id_null] %>% unlist()
   funs <- funs[!id_null]
+  fun_def <- fun_def[!id_null]
+  names(fun_def) <- funs
 
   # Collect package dependencies
   id_pkgs <- str %>%
@@ -42,8 +44,7 @@ get_deps <- function(h, this_env) {
     for (fu in funs) {
 
       assign(x = fu,
-             value = pryr::fget(fu,
-                                env = pryr::enclosing_env(h)),
+             value = fun_def[[fu]],
              envir = this_env)
 
     }
@@ -51,7 +52,8 @@ get_deps <- function(h, this_env) {
   }
 
   # Recurse on functions not in any package
-  str <- sapply(funs, get_deps) %>% unlist()
+  str <- sapply(seq_along(funs),
+                function(i) get_deps(fun_def[[i]], this_env, where = where)) %>% unlist()
 
   # All dependencies
   deps <- setdiff(unique(c(pkgs, funs, str)), "namespace:base")
@@ -60,40 +62,82 @@ get_deps <- function(h, this_env) {
 
 }
 
-env_name_fun <- function(h) {
+env_name_fun <- function(h,
+                         search = rlang::current_env()) {
 
   if (is.character(h)) {
 
     if (stringr::str_detect(h, pattern = stringr::fixed("::"))) {
 
-      return(paste0("namespace:",
-                    stringr::str_split(h,
-                                       pattern = stringr::fixed("::"))[[1]][1]))
+      return(list(fun = eval(parse(text = h)),
+                  ns = paste0("namespace:",
+                         stringr::str_split(h,
+                                            pattern = stringr::fixed("::"))[[1]][1])))
 
     }
 
     if (h == "%>%") {
 
-      return("namespace:magrittr")
+      return(list(fun = magrittr::`%>%`,
+                  ns = "namespace:magrittr"))
 
     }
 
-    # h <- eval(parse(text = h))
+    if (h %in% ls(envir = rlang::as_environment("base"))) {
+
+      return(list(fun = NULL,
+                  ns = NULL))
+
+    }
+
+    h1 <- rlang::env_get(nm = h,
+                        default = NULL,
+                        inherit = TRUE,
+                        env = search)
+
+    if (!is.null(h1)) {
+
+      h <- h1
+
+    } else {
+
+      L <- help.search(pattern = h, fields = "name")
+
+      if (length(L) > 0) {
+
+        ii <- which(L$matches$Entry == h)[1]
+
+        if (is.na(ii)) ii <- 1
+
+        pkg <- L$matches$Package[ii]
+
+        fun <- eval(parse(text = paste0(pkg, "::", h)))
+        return(list(fun = fun,
+               ns = paste0("namespace:", pkg)))
+
+      }
+
+
+    }
 
   }
 
+  if (is.null(h)) {
 
-  h <- match.fun(h)
+    return(list(fun = NULL,
+                ns = NULL))
+
+  }
+
   pkg <- methods::packageSlot(h)
 
-  if (!is.null(pkg)) return(paste0("namespace:", pkg))
-  # print(h)
-  # if (is.character(h)) h <- dynGet(h, ifnotfound = NULL)
-  if (is.null(h)) return(NULL)
+  if (!is.null(pkg)) return(list(fun = h,
+                                 ns = paste0("namespace:", pkg)))
+
   env <- pryr::enclosing_env(h)
   if (!rlang::is_environment(env)) return(NULL)
 
-  return(rlang::env_name(env))
+  return(list(fun = h, ns = rlang::env_name(env)))
 
 }
 
