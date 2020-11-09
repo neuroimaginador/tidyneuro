@@ -58,7 +58,11 @@ step <- function(flow,
 
   # Add a node to the graph, with edges from its inputs to it.
   # Generate an ID for the name of the node in the graph
-  id <- paste0(sample(c(letters, 0:9), size = 8L, replace = TRUE), collapse = "")
+  id <- paste0("tidyneuro_objid_",
+               sample(c(letters, 0:9),
+                      size = 8L,
+                      replace = TRUE),
+               collapse = "")
 
   if (length(output) == 1) id <- output
 
