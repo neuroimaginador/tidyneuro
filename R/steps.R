@@ -88,7 +88,7 @@ step <- function(flow,
 
   # Add the model to the list of flow models
   additional_params <- list(...)
-
+  f_orig <- f
   if (length(additional_params) > 0) {
 
     f <- f %>% pryr::partial(..., .lazy = FALSE)
@@ -130,7 +130,7 @@ step <- function(flow,
     flow$node_types <- c(flow$node_types, "Output")
     names(flow$node_types)[length(flow$node_types)] <- output
     # Add package dependencies
-    flow$pkgs[[output]] <- get_deps(f, flow$env)
+    flow$pkgs[[output]] <- get_deps(f_orig, flow$env)
 
   } else {
 

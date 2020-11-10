@@ -13,7 +13,7 @@ get_deps <- function(h, this_env,
   str <- env_name_fun(h, search = where)
 
   if (stringr::str_detect(str$ns,
-                          pattern = stringr::fixed("namespace:"))) return(str)
+                          pattern = stringr::fixed("namespace:"))) return(str$ns)
 
   # Get function calls and corresponding namespaces
   funs <- get_f_calls(h)
